@@ -77,20 +77,29 @@ func (r Result[T]) ErrVal() any {
 
 // Map maps a Result[T] to Result[U] by applying a function to a contained Ok value, leaving an Err value untouched.
 // This function can be used to compose the results of two functions.
-func Map[T any, U any](r Result[T], op func(T) U) Result[U] {
+func Map[T any, U any](r Result[T], f func(T) U) Result[U] {
 	if r.IsOk() {
-		return Ok[U](op(r.ok))
+		return Ok[U](f(r.ok))
 	}
 	return Err[U](r.err)
 }
 
 // MapOr returns the provided default (if Err), or applies a function to the contained value (if Ok),
 // Arguments passed to map_or are eagerly evaluated; if you are passing the result of a function call, it is recommended to use map_or_else, which is lazily evaluated.
-func MapOr[T any, U any](r Result[T], defaultOk U, op func(T) U) U {
+func MapOr[T any, U any](r Result[T], defaultOk U, f func(T) U) U {
 	if r.IsOk() {
-		return op(r.ok)
+		return f(r.ok)
 	}
 	return defaultOk
+}
+
+// MapOrElse maps a Result[T] to U by applying fallback function default to a contained Err value, or function f to a contained Ok value.
+// This function can be used to unpack a successful result while handling an error.
+func MapOrElse[T any, U any](r Result[T], defaultFn func(error) U, f func(T) U) U {
+	if r.IsOk() {
+		return f(r.ok)
+	}
+	return defaultFn(r.err)
 }
 
 func (r Result[T]) String() string {
