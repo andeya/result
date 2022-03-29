@@ -218,6 +218,24 @@ func And[T any, U any](r *Result[T], r2 *Result[U]) *Result[U] {
 	return r2
 }
 
+// AndThan calls op if the result is Ok, otherwise returns the Err value of self.
+// This function can be used for control flow based on Result values.
+func (r *Result[T]) AndThan(op func(T) *Result[T]) *Result[T] {
+	if r.IsErr() {
+		return r
+	}
+	return op(r.ok)
+}
+
+// AndThan calls op if the result is Ok, otherwise returns the Err value of self.
+// This function can be used for control flow based on Result values.
+func AndThan[T any, U any](r *Result[T], op func(T) *Result[U]) *Result[U] {
+	if r.IsErr() {
+		return &Result[U]{err: r.err}
+	}
+	return op(r.ok)
+}
+
 func (r *Result[T]) String() string {
 	if r.IsErr() {
 		return fmt.Sprintf("Err(%s)", r.err.Error())
