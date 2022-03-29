@@ -263,6 +263,14 @@ func (r *Result[T]) UnwrapOr(defaultOk T) T {
 	return r.ok
 }
 
+// UnwrapOrElse returns the contained Ok value or computes it from a closure.
+func (r *Result[T]) UnwrapOrElse(defaultFn func(error) T) T {
+	if r.IsErr() {
+		return defaultFn(r.err)
+	}
+	return r.ok
+}
+
 func (r *Result[T]) String() string {
 	if r.IsErr() {
 		return fmt.Sprintf("Err(%s)", r.err.Error())
