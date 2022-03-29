@@ -245,6 +245,15 @@ func (r *Result[T]) Or(res *Result[T]) *Result[T] {
 	return r
 }
 
+// OrElse calls op if the result is Err, otherwise returns the Ok value of self.
+// This function can be used for control flow based on result values.
+func (r *Result[T]) OrElse(op func(error) *Result[T]) *Result[T] {
+	if r.IsErr() {
+		return op(r.err)
+	}
+	return r
+}
+
 func (r *Result[T]) String() string {
 	if r.IsErr() {
 		return fmt.Sprintf("Err(%s)", r.err.Error())
