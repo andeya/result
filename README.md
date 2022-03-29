@@ -1,5 +1,5 @@
 # result
-Go-generics result module inspired by rust result crate.
+Go-generics result module inspired by rust.
 
 Avoid ifelse, handle result with chain methods, will you choose her?
 
