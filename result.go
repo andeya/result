@@ -156,11 +156,28 @@ func (r *Result[T]) Inspect(f func(T)) *Result[T] {
 }
 
 // InspectErr calls the provided closure with a reference to the contained error (if Err).
-func (r *Result[T]) InspectErr(f func( error)) *Result[T] {
+func (r *Result[T]) InspectErr(f func(error)) *Result[T] {
 	if r.IsErr() {
 		f(r.err)
 	}
 	return r
+}
+
+// Expect returns the contained Ok value, consuming the self value.
+func (r *Result[T]) Expect(msg string) T {
+	if r.IsErr() {
+		panic(fmt.Errorf("%s: %w", msg, r.err))
+	}
+	return r.ok
+}
+
+// Unwrap returns the contained Ok value, consuming the self value.
+// Because this function may panic, its use is generally discouraged. Instead, prefer to use pattern matching and handle the Err case explicitly, or call unwrap_or, unwrap_or_else, or unwrap_or_default.
+func (r *Result[T]) Unwrap() T {
+	if r.IsErr() {
+		panic(fmt.Errorf("called `Result.unwrap()` on an `err` value: %w", r.err))
+	}
+	return r.ok
 }
 
 func (r *Result[T]) String() string {
