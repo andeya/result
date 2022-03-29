@@ -175,7 +175,7 @@ func (r *Result[T]) Expect(msg string) T {
 // Because this function may panic, its use is generally discouraged. Instead, prefer to use pattern matching and handle the Err case explicitly, or call unwrap_or, unwrap_or_else, or unwrap_or_default.
 func (r *Result[T]) Unwrap() T {
 	if r.IsErr() {
-		panic(fmt.Errorf("called `Result.unwrap()` on an `err` value: %w", r.err))
+		panic(fmt.Errorf("called `Result.Unwrap()` on an `err` value: %w", r.err))
 	}
 	return r.ok
 }
@@ -192,6 +192,14 @@ func (r *Result[T]) ExpectErr(msg string) error {
 		return r.err
 	}
 	panic(fmt.Errorf("%s: %v", msg, r.ok))
+}
+
+// UnwrapErr returns the contained Err value, consuming the self value.
+func (r *Result[T]) UnwrapErr() error {
+	if r.IsErr() {
+		return r.err
+	}
+	panic(fmt.Errorf("called `Result.UnwrapErr()` on an `ok` value: %v", r.ok))
 }
 
 func (r *Result[T]) String() string {
