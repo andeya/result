@@ -254,6 +254,15 @@ func (r *Result[T]) OrElse(op func(error) *Result[T]) *Result[T] {
 	return r
 }
 
+// UnwrapOr returns the contained Ok value or a provided default.
+// Arguments passed to unwrap_or are eagerly evaluated; if you are passing the result of a function call, it is recommended to use unwrap_or_else, which is lazily evaluated.
+func (r *Result[T]) UnwrapOr(defaultOk T) T {
+	if r.IsErr() {
+		return defaultOk
+	}
+	return r.ok
+}
+
 func (r *Result[T]) String() string {
 	if r.IsErr() {
 		return fmt.Sprintf("Err(%s)", r.err.Error())
