@@ -1,4 +1,4 @@
-# result
+# result [![GoDoc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](https://pkg.go.dev/github.com/henrylee2cn/result)
 Go-generics result module inspired by rust.
 
 Avoid ifelse, handle result with chain methods, will you choose her?
