@@ -11,6 +11,7 @@ type Result[T any] struct {
 	err error
 }
 
+// Wrap wraps a result.
 func Wrap[T any](some T, err error) Result[T] {
 	if err != nil {
 		return Err[T](err)
@@ -18,10 +19,12 @@ func Wrap[T any](some T, err error) Result[T] {
 	return Ok(some)
 }
 
+// Ok wraps a Ok result.
 func Ok[T any](ok T) Result[T] {
 	return Result[T]{ok: ok}
 }
 
+// Err wraps a Err result.
 func Err[T any](err any) Result[T] {
 	return Result[T]{err: newAnyError(err)}
 }
@@ -295,6 +298,7 @@ func Flatten[T any](r Result[Result[T]]) Result[T] {
 	return AndThen(r, func(rr Result[T]) Result[T] { return rr })
 }
 
+// String formats the result as a string.
 func (r Result[T]) String() string {
 	if r.IsErr() {
 		return fmt.Sprintf("Err(%s)", r.err.Error())
