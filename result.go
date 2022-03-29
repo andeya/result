@@ -290,6 +290,11 @@ func (r *Result[T]) ContainsErr(err error) bool {
 	return errors.Is(r.err, err)
 }
 
+// Flatten converts from *Result[*Result[T]] to *Result[T].
+func Flatten[T any](r *Result[*Result[T]]) *Result[T] {
+	return AndThan(r, func(rr *Result[T]) *Result[T] { return rr })
+}
+
 func (r *Result[T]) String() string {
 	if r.IsErr() {
 		return fmt.Sprintf("Err(%s)", r.err.Error())
