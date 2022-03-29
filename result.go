@@ -236,6 +236,15 @@ func AndThan[T any, U any](r *Result[T], op func(T) *Result[U]) *Result[U] {
 	return op(r.ok)
 }
 
+// Or returns res if the result is Err, otherwise returns the Ok value of r.
+// Arguments passed to or are eagerly evaluated; if you are passing the result of a function call, it is recommended to use or_else, which is lazily evaluated.
+func (r *Result[T]) Or(res *Result[T]) *Result[T] {
+	if r.IsErr() {
+		return res
+	}
+	return r
+}
+
 func (r *Result[T]) String() string {
 	if r.IsErr() {
 		return fmt.Sprintf("Err(%s)", r.err.Error())
