@@ -186,6 +186,14 @@ func (r *Result[T]) UnwrapOrDefault() T {
 	return r.ok
 }
 
+// ExpectErr returns the contained Err value, consuming the self value.
+func (r *Result[T]) ExpectErr(msg string) error {
+	if r.IsErr() {
+		return r.err
+	}
+	panic(fmt.Errorf("%s: %v", msg, r.ok))
+}
+
 func (r *Result[T]) String() string {
 	if r.IsErr() {
 		return fmt.Sprintf("Err(%s)", r.err.Error())
