@@ -180,6 +180,12 @@ func (r *Result[T]) Unwrap() T {
 	return r.ok
 }
 
+// UnwrapOrDefault returns the contained Ok value or a default
+// Consumes the self argument then, if Ok, returns the contained value, otherwise if Err, returns the default value for that type.
+func (r *Result[T]) UnwrapOrDefault() T {
+	return r.ok
+}
+
 func (r *Result[T]) String() string {
 	if r.IsErr() {
 		return fmt.Sprintf("Err(%s)", r.err.Error())
