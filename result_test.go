@@ -11,12 +11,12 @@ func TestWrap(t *testing.T) {
 	var w = Wrap[int](strconv.Atoi("s"))
 	assert.False(t, w.IsOk())
 	assert.True(t, w.IsErr())
-	assert.Equal(t, 0, w.Ok())
+	assert.Nil(t, w.Ok())
 
 	var w2 = Wrap[any](strconv.Atoi("-1"))
 	assert.True(t, w2.IsOk())
 	assert.False(t, w2.IsErr())
-	assert.Equal(t, -1, w2.Ok())
+	assert.Equal(t, -1, *w2.Ok())
 }
 
 func TestResult_Map(t *testing.T) {

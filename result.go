@@ -102,6 +102,15 @@ func MapOrElse[T any, U any](r Result[T], defaultFn func(error) U, f func(T) U) 
 	return defaultFn(r.err)
 }
 
+// MapErr maps a Result[T] to Result<T, F> by applying a function to a contained Err value, leaving an Ok value untouched.
+// This function can be used to pass through a successful result while handling an error.
+func MapErr[T any](r Result[T], op func(error) error) Result[T] {
+	if r.IsErr() {
+		r.err = op(r.err)
+	}
+	return r
+}
+
 func (r Result[T]) String() string {
 	if r.IsErr() {
 		return fmt.Sprintf("Err(%s)", r.err.Error())
