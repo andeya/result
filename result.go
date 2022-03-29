@@ -1,6 +1,7 @@
 package result
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -268,6 +269,25 @@ func (r *Result[T]) UnwrapOrElse(defaultFn func(error) T) T {
 // UnwrapUnchecked returns the contained Ok value, consuming the self value, without checking that the value is not an Err.
 func (r *Result[T]) UnwrapUnchecked() T {
 	return r.ok
+}
+
+// Contains returns true if the result is an Ok value containing the given value.
+func Contains[T comparable](r *Result[T], x T) bool {
+	if r.IsErr() {
+		return false
+	}
+	return r.ok == x
+}
+
+// ContainsErr returns true if the result is an Err value containing the given value.
+func (r *Result[T]) ContainsErr(err error) bool {
+	if r.IsOk() {
+		return false
+	}
+	if err == r.err {
+		return true
+	}
+	return errors.Is(r.err, err)
 }
 
 func (r *Result[T]) String() string {
