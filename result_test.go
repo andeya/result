@@ -43,3 +43,21 @@ func TestMap(t *testing.T) {
 	assert.Equal(t, "Err(strconv.Atoi: parsing \"lol\": invalid syntax)", isMyNum("lol", 1).String())
 	assert.Equal(t, "Err(strconv.Atoi: parsing \"NaN\": invalid syntax)", isMyNum("NaN", 1).String())
 }
+
+func ExampleDefaultValue() {
+	const def int = 10
+
+	// before
+	i, err := strconv.Atoi("1")
+	if err != nil {
+		i = def
+	}
+	fmt.Println(i * 2)
+
+	// now
+	fmt.Println(Wrap(strconv.Atoi("1")).UnwrapOr(def) * 2)
+
+	// Output:
+	// 2
+	// 2
+}

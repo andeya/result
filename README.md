@@ -25,3 +25,23 @@ func ExampleAndThen() {
 	// 5
 }
 ```
+
+```go
+func ExampleDefaultValue() {
+	const def int = 10
+
+	// before
+	i, err := strconv.Atoi("1")
+	if err != nil {
+		i = def
+	}
+	fmt.Println(i * 2)
+
+	// now
+	fmt.Println(Wrap(strconv.Atoi("1")).UnwrapOr(def) * 2)
+
+	// Output:
+	// 2
+	// 2
+}
+```
