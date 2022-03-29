@@ -1,2 +1,2 @@
 # result
-Go result module inspired by rust result crate
+Go-generics result module inspired by rust result crate.
