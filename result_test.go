@@ -20,7 +20,7 @@ func TestWrap(t *testing.T) {
 }
 
 func TestResult_Map(t *testing.T) {
-	var isMyNum = func(s string, search int) Result[bool] {
+	var isMyNum = func(s string, search int) *Result[bool] {
 		return Map(Wrap(strconv.Atoi(s)), func(x int) bool { return x == search })
 	}
 	assert.Equal(t, Ok[bool](true), isMyNum("1", 1))

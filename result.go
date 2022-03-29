@@ -10,28 +10,28 @@ type Result[T any] struct {
 	err error
 }
 
-func Wrap[T any](some T, err error) Result[T] {
+func Wrap[T any](some T, err error) *Result[T] {
 	if err != nil {
 		return Err[T](err)
 	}
 	return Ok(some)
 }
 
-func Ok[T any](ok T) Result[T] {
-	return Result[T]{ok: ok}
+func Ok[T any](ok T) *Result[T] {
+	return &Result[T]{ok: ok}
 }
 
-func Err[T any](err any) Result[T] {
-	return Result[T]{err: newAnyError(err)}
+func Err[T any](err any) *Result[T] {
+	return &Result[T]{err: newAnyError(err)}
 }
 
 // IsOk returns true if the result is Ok.
-func (r Result[T]) IsOk() bool {
+func (r *Result[T]) IsOk() bool {
 	return !r.IsErr()
 }
 
 // IsOkAnd returns true if the result is Ok and the value inside of it matches a predicate.
-func (r Result[T]) IsOkAnd(f func(T) bool) bool {
+func (r *Result[T]) IsOkAnd(f func(T) bool) bool {
 	if r.IsOk() {
 		return f(r.ok)
 	}
@@ -39,12 +39,12 @@ func (r Result[T]) IsOkAnd(f func(T) bool) bool {
 }
 
 // IsErr returns true if the result is error.
-func (r Result[T]) IsErr() bool {
+func (r *Result[T]) IsErr() bool {
 	return r.err != nil
 }
 
 // IsErrAnd returns true if the result is Err and the value inside of it matches a predicate.
-func (r Result[T]) IsErrAnd(f func(error) bool) bool {
+func (r *Result[T]) IsErrAnd(f func(error) bool) bool {
 	if r.IsErr() {
 		return f(r.err)
 	}
@@ -52,7 +52,7 @@ func (r Result[T]) IsErrAnd(f func(error) bool) bool {
 }
 
 // Ok returns T, and returns empty if it is an error.
-func (r Result[T]) Ok() *T {
+func (r *Result[T]) Ok() *T {
 	if r.IsOk() {
 		return &r.ok
 	}
@@ -60,12 +60,12 @@ func (r Result[T]) Ok() *T {
 }
 
 // Err returns error.
-func (r Result[T]) Err() error {
+func (r *Result[T]) Err() error {
 	return r.err
 }
 
 // ErrVal returns error inner value.
-func (r Result[T]) ErrVal() any {
+func (r *Result[T]) ErrVal() any {
 	if r.IsErr() {
 		return nil
 	}
@@ -75,9 +75,18 @@ func (r Result[T]) ErrVal() any {
 	return r.err
 }
 
+// Map maps a Result[T] to Result[T] by applying a function to a contained Ok value, leaving an Err value untouched.
+// This function can be used to compose the results of two functions.
+func (r *Result[T]) Map(f func(T) T) *Result[T] {
+	if r.IsOk() {
+		return Ok[T](f(r.ok))
+	}
+	return Err[T](r.err)
+}
+
 // Map maps a Result[T] to Result[U] by applying a function to a contained Ok value, leaving an Err value untouched.
 // This function can be used to compose the results of two functions.
-func Map[T any, U any](r Result[T], f func(T) U) Result[U] {
+func Map[T any, U any](r *Result[T], f func(T) U) *Result[U] {
 	if r.IsOk() {
 		return Ok[U](f(r.ok))
 	}
@@ -86,32 +95,67 @@ func Map[T any, U any](r Result[T], f func(T) U) Result[U] {
 
 // MapOr returns the provided default (if Err), or applies a function to the contained value (if Ok),
 // Arguments passed to map_or are eagerly evaluated; if you are passing the result of a function call, it is recommended to use map_or_else, which is lazily evaluated.
-func MapOr[T any, U any](r Result[T], defaultOk U, f func(T) U) U {
+func (r *Result[T]) MapOr(defaultOk T, f func(T) T) T {
 	if r.IsOk() {
 		return f(r.ok)
 	}
 	return defaultOk
 }
 
-// MapOrElse maps a Result[T] to U by applying fallback function default to a contained Err value, or function f to a contained Ok value.
+// MapOr returns the provided default (if Err), or applies a function to the contained value (if Ok),
+// Arguments passed to map_or are eagerly evaluated; if you are passing the result of a function call, it is recommended to use map_or_else, which is lazily evaluated.
+func MapOr[T any, U any](r *Result[T], defaultOk U, f func(T) U) U {
+	if r.IsOk() {
+		return f(r.ok)
+	}
+	return defaultOk
+}
+
+// MapOrElse maps a Result[T] to T by applying fallback function default to a contained Err value, or function f to a contained Ok value.
 // This function can be used to unpack a successful result while handling an error.
-func MapOrElse[T any, U any](r Result[T], defaultFn func(error) U, f func(T) U) U {
+func (r *Result[T]) MapOrElse(defaultFn func(error) T, f func(T) T) T {
 	if r.IsOk() {
 		return f(r.ok)
 	}
 	return defaultFn(r.err)
 }
 
-// MapErr maps a Result[T] to Result<T, F> by applying a function to a contained Err value, leaving an Ok value untouched.
+// MapOrElse maps a Result[T] to U by applying fallback function default to a contained Err value, or function f to a contained Ok value.
+// This function can be used to unpack a successful result while handling an error.
+func MapOrElse[T any, U any](r *Result[T], defaultFn func(error) U, f func(T) U) U {
+	if r.IsOk() {
+		return f(r.ok)
+	}
+	return defaultFn(r.err)
+}
+
+// MapErr maps a Result[T] to Result[T] by applying a function to a contained Err value, leaving an Ok value untouched.
 // This function can be used to pass through a successful result while handling an error.
-func MapErr[T any](r Result[T], op func(error) error) Result[T] {
+func (r *Result[T]) MapErr(op func(error) error) *Result[T] {
 	if r.IsErr() {
 		r.err = op(r.err)
 	}
 	return r
 }
 
-func (r Result[T]) String() string {
+// MapErr maps a Result[T] to Result[T] by applying a function to a contained Err value, leaving an Ok value untouched.
+// This function can be used to pass through a successful result while handling an error.
+func MapErr[T any](r *Result[T], op func(error) error) *Result[T] {
+	if r.IsErr() {
+		r.err = op(r.err)
+	}
+	return r
+}
+
+// Inspect calls the provided closure with a reference to the contained value (if Ok).
+func (r *Result[T]) Inspect(f func(T)) *Result[T] {
+	if r.IsOk() {
+		f(r.ok)
+	}
+	return r
+}
+
+func (r *Result[T]) String() string {
 	if r.IsErr() {
 		return fmt.Sprintf("Err(%s)", r.err.Error())
 	}
