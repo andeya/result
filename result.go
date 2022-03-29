@@ -202,6 +202,22 @@ func (r *Result[T]) UnwrapErr() error {
 	panic(fmt.Errorf("called `Result.UnwrapErr()` on an `ok` value: %v", r.ok))
 }
 
+// And returns res if the result is Ok, otherwise returns the Err value of self.
+func (r *Result[T]) And(res *Result[T]) *Result[T] {
+	if r.IsErr() {
+		return r
+	}
+	return res
+}
+
+// And returns r2 if the result is Ok, otherwise returns the Err value of r.
+func And[T, U](r *Result[T], r2 *Result[U]) *Result[U] {
+	if r.IsErr() {
+		return &Result[U]{err: r.err}
+	}
+	return r2
+}
+
 func (r *Result[T]) String() string {
 	if r.IsErr() {
 		return fmt.Sprintf("Err(%s)", r.err.Error())
