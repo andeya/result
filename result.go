@@ -155,6 +155,14 @@ func (r *Result[T]) Inspect(f func(T)) *Result[T] {
 	return r
 }
 
+// InspectErr calls the provided closure with a reference to the contained error (if Err).
+func (r *Result[T]) InspectErr(f func( error)) *Result[T] {
+	if r.IsErr() {
+		f(r.err)
+	}
+	return r
+}
+
 func (r *Result[T]) String() string {
 	if r.IsErr() {
 		return fmt.Sprintf("Err(%s)", r.err.Error())
