@@ -35,7 +35,7 @@ func TestWrap(t *testing.T) {
 	assert.Equal(t, -1, *w2.Ok())
 }
 
-func TestResult_Map(t *testing.T) {
+func TestMap(t *testing.T) {
 	var isMyNum = func(s string, search int) Result[bool] {
 		return Map(Wrap(strconv.Atoi(s)), func(x int) bool { return x == search })
 	}
