@@ -180,12 +180,6 @@ func (r *Result[T]) Unwrap() T {
 	return r.ok
 }
 
-// UnwrapOrDefault returns the contained Ok value or a default
-// Consumes the self argument then, if Ok, returns the contained value, otherwise if Err, returns the default value for that type.
-func (r *Result[T]) UnwrapOrDefault() T {
-	return r.ok
-}
-
 // ExpectErr returns the contained Err value, consuming the self value.
 func (r *Result[T]) ExpectErr(msg string) error {
 	if r.IsErr() {
@@ -268,6 +262,11 @@ func (r *Result[T]) UnwrapOrElse(defaultFn func(error) T) T {
 	if r.IsErr() {
 		return defaultFn(r.err)
 	}
+	return r.ok
+}
+
+// UnwrapUnchecked returns the contained Ok value, consuming the self value, without checking that the value is not an Err.
+func (r *Result[T]) UnwrapUnchecked() T {
 	return r.ok
 }
 
