@@ -211,7 +211,7 @@ func (r *Result[T]) And(res *Result[T]) *Result[T] {
 }
 
 // And returns r2 if the result is Ok, otherwise returns the Err value of r.
-func And[T, U](r *Result[T], r2 *Result[U]) *Result[U] {
+func And[T any, U any](r *Result[T], r2 *Result[U]) *Result[U] {
 	if r.IsErr() {
 		return &Result[U]{err: r.err}
 	}
