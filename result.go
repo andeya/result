@@ -11,6 +11,14 @@ type Result[T any] struct {
 	err error
 }
 
+// String returns the string representation.
+func (r Result[T]) String() string {
+	if r.IsErr() {
+		return fmt.Sprintf("Err(%s)", r.err.Error())
+	}
+	return fmt.Sprintf("Ok(%v)", r.ok)
+}
+
 // Wrap wraps a result.
 func Wrap[T any](some T, err error) Result[T] {
 	if err != nil {
@@ -19,12 +27,12 @@ func Wrap[T any](some T, err error) Result[T] {
 	return Ok(some)
 }
 
-// Ok wraps a Ok result.
+// Ok wraps an Ok result.
 func Ok[T any](ok T) Result[T] {
 	return Result[T]{ok: ok}
 }
 
-// Err wraps a Err result.
+// Err wraps an error result.
 func Err[T any](err any) Result[T] {
 	return Result[T]{err: newAnyError(err)}
 }
@@ -47,7 +55,7 @@ func (r Result[T]) IsErr() bool {
 	return r.err != nil
 }
 
-// IsErrAnd returns true if the result is Err and the value inside of it matches a predicate.
+// IsErrAnd returns true if the result is error and the value inside of it matches a predicate.
 func (r Result[T]) IsErrAnd(f func(error) bool) bool {
 	if r.IsErr() {
 		return f(r.err)
@@ -79,7 +87,7 @@ func (r Result[T]) ErrVal() any {
 	return r.err
 }
 
-// Map maps a Result[T] to Result[T] by applying a function to a contained Ok value, leaving an Err value untouched.
+// Map maps a Result[T] to Result[T] by applying a function to a contained Ok value, leaving an error untouched.
 // This function can be used to compose the results of two functions.
 func (r Result[T]) Map(f func(T) T) Result[T] {
 	if r.IsOk() {
@@ -88,7 +96,7 @@ func (r Result[T]) Map(f func(T) T) Result[T] {
 	return Err[T](r.err)
 }
 
-// Map maps a Result[T] to Result[U] by applying a function to a contained Ok value, leaving an Err value untouched.
+// Map maps a Result[T] to Result[U] by applying a function to a contained Ok value, leaving an error untouched.
 // This function can be used to compose the results of two functions.
 func Map[T any, U any](r Result[T], f func(T) U) Result[U] {
 	if r.IsOk() {
@@ -97,8 +105,8 @@ func Map[T any, U any](r Result[T], f func(T) U) Result[U] {
 	return Err[U](r.err)
 }
 
-// MapOr returns the provided default (if Err), or applies a function to the contained value (if Ok),
-// Arguments passed to map_or are eagerly evaluated; if you are passing the result of a function call, it is recommended to use map_or_else, which is lazily evaluated.
+// MapOr returns the provided default (if error), or applies a function to the contained value (if no error),
+// Arguments passed to map_or are eagerly evaluated; if you are passing the result of a function call, it is recommended to use MapOrElse, which is lazily evaluated.
 func (r Result[T]) MapOr(defaultOk T, f func(T) T) T {
 	if r.IsOk() {
 		return f(r.ok)
@@ -106,8 +114,8 @@ func (r Result[T]) MapOr(defaultOk T, f func(T) T) T {
 	return defaultOk
 }
 
-// MapOr returns the provided default (if Err), or applies a function to the contained value (if Ok),
-// Arguments passed to map_or are eagerly evaluated; if you are passing the result of a function call, it is recommended to use map_or_else, which is lazily evaluated.
+// MapOr returns the provided default (if error), or applies a function to the contained value (if no error),
+// Arguments passed to map_or are eagerly evaluated; if you are passing the result of a function call, it is recommended to use MapOrElse, which is lazily evaluated.
 func MapOr[T any, U any](r Result[T], defaultOk U, f func(T) U) U {
 	if r.IsOk() {
 		return f(r.ok)
@@ -115,7 +123,7 @@ func MapOr[T any, U any](r Result[T], defaultOk U, f func(T) U) U {
 	return defaultOk
 }
 
-// MapOrElse maps a Result[T] to T by applying fallback function default to a contained Err value, or function f to a contained Ok value.
+// MapOrElse maps a Result[T] to T by applying fallback function default to a contained error, or function f to a contained Ok value.
 // This function can be used to unpack a successful result while handling an error.
 func (r Result[T]) MapOrElse(defaultFn func(error) T, f func(T) T) T {
 	if r.IsOk() {
@@ -124,7 +132,7 @@ func (r Result[T]) MapOrElse(defaultFn func(error) T, f func(T) T) T {
 	return defaultFn(r.err)
 }
 
-// MapOrElse maps a Result[T] to U by applying fallback function default to a contained Err value, or function f to a contained Ok value.
+// MapOrElse maps a Result[T] to U by applying fallback function default to a contained error, or function f to a contained Ok value.
 // This function can be used to unpack a successful result while handling an error.
 func MapOrElse[T any, U any](r Result[T], defaultFn func(error) U, f func(T) U) U {
 	if r.IsOk() {
@@ -133,7 +141,7 @@ func MapOrElse[T any, U any](r Result[T], defaultFn func(error) U, f func(T) U) 
 	return defaultFn(r.err)
 }
 
-// MapErr maps a Result[T] to Result[T] by applying a function to a contained Err value, leaving an Ok value untouched.
+// MapErr maps a Result[T] to Result[T] by applying a function to a contained error, leaving an Ok value untouched.
 // This function can be used to pass through a successful result while handling an error.
 func (r *Result[T]) MapErr(op func(error) error) Result[T] {
 	if r.IsErr() {
@@ -142,16 +150,7 @@ func (r *Result[T]) MapErr(op func(error) error) Result[T] {
 	return *r
 }
 
-// MapErr maps a Result[T] to Result[T] by applying a function to a contained Err value, leaving an Ok value untouched.
-// This function can be used to pass through a successful result while handling an error.
-func MapErr[T any](r *Result[T], op func(error) error) Result[T] {
-	if r.IsErr() {
-		r.err = op(r.err)
-	}
-	return *r
-}
-
-// Inspect calls the provided closure with a reference to the contained value (if Ok).
+// Inspect calls the provided closure with a reference to the contained value (if no error).
 func (r Result[T]) Inspect(f func(T)) Result[T] {
 	if r.IsOk() {
 		f(r.ok)
@@ -159,7 +158,7 @@ func (r Result[T]) Inspect(f func(T)) Result[T] {
 	return r
 }
 
-// InspectErr calls the provided closure with a reference to the contained error (if Err).
+// InspectErr calls the provided closure with a reference to the contained error (if error).
 func (r Result[T]) InspectErr(f func(error)) Result[T] {
 	if r.IsErr() {
 		f(r.err)
@@ -167,7 +166,9 @@ func (r Result[T]) InspectErr(f func(error)) Result[T] {
 	return r
 }
 
-// Expect returns the contained Ok value, consuming the self value.
+// Expect returns the contained Ok value.
+// Panics if the value is an error, with a panic message including the
+// passed message, and the content of the error.
 func (r Result[T]) Expect(msg string) T {
 	if r.IsErr() {
 		panic(fmt.Errorf("%s: %w", msg, r.err))
@@ -175,8 +176,9 @@ func (r Result[T]) Expect(msg string) T {
 	return r.ok
 }
 
-// Unwrap returns the contained Ok value, consuming the self value.
-// Because this function may panic, its use is generally discouraged. Instead, prefer to use pattern matching and handle the Err case explicitly, or call unwrap_or, unwrap_or_else, or unwrap_or_default.
+// Unwrap returns the contained Ok value.
+// Because this function may panic, its use is generally discouraged.
+// Instead, prefer to use pattern matching and handle the error case explicitly, or call UnwrapOr or UnwrapOrElse.
 func (r Result[T]) Unwrap() T {
 	if r.IsErr() {
 		panic(fmt.Errorf("called `Result.Unwrap()` on an `err` value: %w", r.err))
@@ -184,7 +186,9 @@ func (r Result[T]) Unwrap() T {
 	return r.ok
 }
 
-// ExpectErr returns the contained Err value, consuming the self value.
+// ExpectErr returns the contained error.
+// Panics if the value is not an error, with a panic message including the
+// passed message, and the content of the [`Ok`].
 func (r Result[T]) ExpectErr(msg string) error {
 	if r.IsErr() {
 		return r.err
@@ -192,7 +196,9 @@ func (r Result[T]) ExpectErr(msg string) error {
 	panic(fmt.Errorf("%s: %v", msg, r.ok))
 }
 
-// UnwrapErr returns the contained Err value, consuming the self value.
+// UnwrapErr returns the contained error.
+// Panics if the value is not an error, with a custom panic message provided
+// by the [`Ok`]'s value.
 func (r Result[T]) UnwrapErr() error {
 	if r.IsErr() {
 		return r.err
@@ -200,7 +206,7 @@ func (r Result[T]) UnwrapErr() error {
 	panic(fmt.Errorf("called `Result.UnwrapErr()` on an `ok` value: %v", r.ok))
 }
 
-// And returns res if the result is Ok, otherwise returns the Err value of self.
+// And returns res if the result is Ok, otherwise returns the error of self.
 func (r Result[T]) And(res Result[T]) Result[T] {
 	if r.IsErr() {
 		return r
@@ -208,7 +214,7 @@ func (r Result[T]) And(res Result[T]) Result[T] {
 	return res
 }
 
-// And returns r2 if the result is Ok, otherwise returns the Err value of r.
+// And returns r2 if the result is Ok, otherwise returns the error of r.
 func And[T any, U any](r Result[T], r2 Result[U]) Result[U] {
 	if r.IsErr() {
 		return Result[U]{err: r.err}
@@ -216,7 +222,7 @@ func And[T any, U any](r Result[T], r2 Result[U]) Result[U] {
 	return r2
 }
 
-// AndThen calls op if the result is Ok, otherwise returns the Err value of self.
+// AndThen calls op if the result is Ok, otherwise returns the error of self.
 // This function can be used for control flow based on Result values.
 func (r Result[T]) AndThen(op func(T) Result[T]) Result[T] {
 	if r.IsErr() {
@@ -225,7 +231,7 @@ func (r Result[T]) AndThen(op func(T) Result[T]) Result[T] {
 	return op(r.ok)
 }
 
-// AndThen calls op if the result is Ok, otherwise returns the Err value of self.
+// AndThen calls op if the result is Ok, otherwise returns the error of self.
 // This function can be used for control flow based on Result values.
 func AndThen[T any, U any](r Result[T], op func(T) Result[U]) Result[U] {
 	if r.IsErr() {
@@ -235,7 +241,7 @@ func AndThen[T any, U any](r Result[T], op func(T) Result[U]) Result[U] {
 }
 
 // Or returns res if the result is Err, otherwise returns the Ok value of r.
-// Arguments passed to or are eagerly evaluated; if you are passing the result of a function call, it is recommended to use or_else, which is lazily evaluated.
+// Arguments passed to or are eagerly evaluated; if you are passing the result of a function call, it is recommended to use OrElse, which is lazily evaluated.
 func (r Result[T]) Or(res Result[T]) Result[T] {
 	if r.IsErr() {
 		return res
@@ -253,7 +259,7 @@ func (r Result[T]) OrElse(op func(error) Result[T]) Result[T] {
 }
 
 // UnwrapOr returns the contained Ok value or a provided default.
-// Arguments passed to unwrap_or are eagerly evaluated; if you are passing the result of a function call, it is recommended to use unwrap_or_else, which is lazily evaluated.
+// Arguments passed to UnwrapOr are eagerly evaluated; if you are passing the result of a function call, it is recommended to use UnwrapOrElse, which is lazily evaluated.
 func (r Result[T]) UnwrapOr(defaultOk T) T {
 	if r.IsErr() {
 		return defaultOk
@@ -269,7 +275,7 @@ func (r Result[T]) UnwrapOrElse(defaultFn func(error) T) T {
 	return r.ok
 }
 
-// UnwrapUnchecked returns the contained Ok value, consuming the self value, without checking that the value is not an Err.
+// UnwrapUnchecked returns the contained Ok value, without checking that the value is not an error.
 func (r Result[T]) UnwrapUnchecked() T {
 	return r.ok
 }
@@ -282,7 +288,7 @@ func Contains[T comparable](r Result[T], x T) bool {
 	return r.ok == x
 }
 
-// ContainsErr returns true if the result is an Err value containing the given value.
+// ContainsErr returns true if the result is an error containing the given value.
 func (r Result[T]) ContainsErr(err error) bool {
 	if r.IsOk() {
 		return false
@@ -296,12 +302,4 @@ func (r Result[T]) ContainsErr(err error) bool {
 // Flatten converts from Result[Result[T]] to Result[T].
 func Flatten[T any](r Result[Result[T]]) Result[T] {
 	return AndThen(r, func(rr Result[T]) Result[T] { return rr })
-}
-
-// String formats the result as a string.
-func (r Result[T]) String() string {
-	if r.IsErr() {
-		return fmt.Sprintf("Err(%s)", r.err.Error())
-	}
-	return fmt.Sprintf("Ok(%v)", r.ok)
 }
