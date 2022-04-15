@@ -3,6 +3,8 @@ Go-generics result module inspired by rust.
 
 Avoid ifelse, handle result with chain methods, will you choose her?
 
+**Note: Migrated to [gust](https://github.com/henrylee2cn/gust).**
+
 ## Go Version
 
 go≥1.18
